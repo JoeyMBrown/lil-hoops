@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import { Inter } from '@next/font/google'
 import styles from '@/styles/Home.module.css'
+import Link from 'next/link';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,8 +22,8 @@ export default function Home() {
             <code className={styles.code}>pages/index.tsx</code>
           </p>
           <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+            <Link
+              href="/profile"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -35,7 +36,7 @@ export default function Home() {
                 height={24}
                 priority
               />
-            </a>
+            </Link>
           </div>
         </div>
 
