@@ -12,18 +12,19 @@ const ShotCounter = ({ session }: { session: Session }) => {
 
   useEffect(() => {
     // check DB for shot today with corresponding user ID as primary key.  If exists, disable button. populate some sort of error message.
-    // If no shot, persist dom.
+    // If no shot, persist submit button.
 
     if(!shotTaken) {
       fetchTodaysShots();
     }
-    
+
   }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setShotCount(e.target.value);
   }
 
+  // if shot taken, disable button display message.  Need to query by date eventually.
   async function fetchTodaysShots() {
 
     try {
@@ -39,37 +40,41 @@ const ShotCounter = ({ session }: { session: Session }) => {
       }
 
       if (data[0]) {
-        console.log(data);
+        //console.log(data);
         setShotTaken(true);
       }
+
     } catch (error) {
-      alert('Error loading user data!')
-      console.log(error)
-    } finally {
-      console.log('finally')
+      alert('Error loading user data!');
+      console.log(error);
     }
   }
 
-
-  // Update localState with shot submitted for today = true;
-  // Add shot record for today in shots DB.  Be sure to implicilty state makes and misses
+  // on submit, calculate shots missed, shots made, and create a record in the DB
+  // We can specify a date here to setup for missed day back filling in future.
   async function handleSubmit (e: MouseEvent) {
     e.preventDefault();
 
-    const { data, error} = await supabase
-      .from('shots_by_date')
-      .insert({user: '414e663c-9383-4fde-a14d-a7d115b6b6d1', shots_made_today: shotCount, shots_missed_today: (3 - Number(shotCount)).toString() })
+    try {
+      if (!user) throw new Error('No user')
+
+      const shotsMissed = (3 - Number(shotCount)).toString();
+
+      const {error, status} = await supabase
+        .from('shots_by_date')
+        .insert({user: user.id, shots_made_today: shotCount, shots_missed_today: shotsMissed })
+
+      if (error && status !== 406) {
+        throw error;
+      }
+
+    }
+    catch (error) {
+      alert('Error loading user data!');
+      console.log(error);
+    }
 
     setShotCount("0");
-
-    if(data) {
-      console.log(data);
-    }
-
-    if(error) {
-      console.log(error)
-    }
-
     setShotTaken(true);
   }
 
