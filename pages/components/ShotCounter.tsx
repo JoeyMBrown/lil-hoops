@@ -8,6 +8,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
   const user = useUser()
 
   const [shotCount, setShotCount] = useState<Shots['shots_made_today']>("0");
+  const [shotDate, setShotDate] = useState<Shots['date_of_shot']>("");
   const [shotTaken, setShotTaken] = useState(false);
 
   useEffect(() => {
@@ -15,13 +16,24 @@ const ShotCounter = ({ session }: { session: Session }) => {
     // If no shot, persist submit button.
 
     if(!shotTaken) {
-      fetchTodaysShots();
+      //fetchTodaysShots();
     }
 
   }, [])
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setShotCount(e.target.value);
+
+    switch(e.target.name) {
+      case "shotDate":
+        setShotDate(e.target.value);
+        break;
+      case "shotsMade":
+        setShotCount(e.target.value);
+        break;
+      default:
+        break;
+    }
+    
   }
 
   // if shot taken, disable button display message.  Need to query by date eventually.
@@ -62,7 +74,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
 
       const {error, status} = await supabase
         .from('shots_by_date')
-        .insert({user: user.id, shots_made_today: shotCount, shots_missed_today: shotsMissed })
+        .insert({user: user.id, shots_made_today: shotCount, shots_missed_today: shotsMissed, date_of_shot: shotDate })
 
       if (error && status !== 406) {
         throw error;
@@ -74,6 +86,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
       console.log(error);
     }
 
+    setShotDate("");
     setShotCount("0");
     setShotTaken(true);
   }
@@ -83,6 +96,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
         <form>
             <label htmlFor="shotsMade">Shots Made:</label>
             <input type="number" id="shotsMade" name="shotsMade" value={shotCount} onChange={(e) => handleChange(e)} min="0" max="3"/>
+            <input type="date" min="02/01/2023" id="shotDate" name="shotDate" placeholder="mm/dd/yyyy" value={shotDate} onChange={(e) => handleChange(e) } />
             {shotTaken ? <h3>You have already taken your shots for today!</h3> : <button type="submit" onClick={(e) => handleSubmit(e)}>Submit</button>}
         </form>
     </div>
