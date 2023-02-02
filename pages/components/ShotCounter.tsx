@@ -8,18 +8,27 @@ const ShotCounter = ({ session }: { session: Session }) => {
   const user = useUser()
 
   const [shotCount, setShotCount] = useState<Shots['shots_made_today']>("0");
-  const [shotDate, setShotDate] = useState<Shots['date_of_shot']>("");
+  const [shotDate, setShotDate] = useState<Shots['date_of_shot']>(getTodaysDateInISOFormat());
   const [shotTaken, setShotTaken] = useState(false);
 
   useEffect(() => {
     // check DB for shot today with corresponding user ID as primary key.  If exists, disable button. populate some sort of error message.
     // If no shot, persist submit button.
 
-    if(!shotTaken) {
+    /*if(!shotTaken) {
       //fetchTodaysShots();
-    }
+    }*/
 
   }, [])
+
+  // Accounts for timezone offset
+  function getTodaysDateInISOFormat() {
+    let yourDate = new Date()
+    yourDate.toISOString().split('T')[0]
+    const offset = yourDate.getTimezoneOffset()
+    yourDate = new Date(yourDate.getTime() - (offset*60*1000))
+    return yourDate.toISOString().split('T')[0]
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
 
@@ -33,11 +42,10 @@ const ShotCounter = ({ session }: { session: Session }) => {
       default:
         break;
     }
-    
+
   }
 
-  // if shot taken, disable button display message.  Need to query by date eventually.
-  async function fetchTodaysShots() {
+  async function fetchShotByDate(date: Database) {
 
     try {
       if (!user) throw new Error('No user')
@@ -45,27 +53,38 @@ const ShotCounter = ({ session }: { session: Session }) => {
       const {data, error, status} = await supabase
         .from('shots_by_date')
         .select(`id, shots_made_today, shots_missed_today`)
-        .eq('user', user.id)
+        .match({ user: user.id, date_of_shot: date })
 
       if (error && status !== 406) {
         throw error
       }
 
       if (data[0]) {
-        //console.log(data);
         setShotTaken(true);
+        return true;
       }
 
     } catch (error) {
       alert('Error loading user data!');
       console.log(error);
+      return false;
     }
+
+    return false;
   }
 
   // on submit, calculate shots missed, shots made, and create a record in the DB
   // We can specify a date here to setup for missed day back filling in future.
   async function handleSubmit (e: MouseEvent) {
     e.preventDefault();
+
+    const shotAlreadyTaken = await fetchShotByDate(shotDate);
+
+    if(shotAlreadyTaken) {
+      // Update Error message state letting user know they have already logged a shot on that date
+      setShotDate(getTodaysDateInISOFormat());
+      return;
+    }
 
     try {
       if (!user) throw new Error('No user')
@@ -86,7 +105,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
       console.log(error);
     }
 
-    setShotDate("");
+    setShotDate(getTodaysDateInISOFormat());
     setShotCount("0");
     setShotTaken(true);
   }
