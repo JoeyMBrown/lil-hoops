@@ -10,10 +10,7 @@ export default function AccountDashboard({ session }: { session: Session }) {
   const user = useUser();
   const [username, setUserName] = useState("Unknown User");
 
-  useEffect(() => {
-    setUserName(fetchUsername());
-    console.log(username);
-  },[])
+  fetchUsername();
 
   async function fetchUsername() {
     try {
@@ -26,8 +23,7 @@ export default function AccountDashboard({ session }: { session: Session }) {
         .single()
 
         if(data) {
-          console.log(data);
-          return data.username;
+          setUserName(data.username);
         }
 
     } catch(e) {
@@ -40,7 +36,7 @@ export default function AccountDashboard({ session }: { session: Session }) {
 
     return (
         <>
-        <h1>Hey, record your shots!</h1>
+        <h1>Hey {username}, record your shots!</h1>
 
         <h2>
           <ShotCounter session={session}></ShotCounter>

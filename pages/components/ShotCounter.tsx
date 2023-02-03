@@ -9,7 +9,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
 
   const [shotCount, setShotCount] = useState<Shots['shots_made_today']>("0");
   const [shotDate, setShotDate] = useState<Shots['date_of_shot']>(getTodaysDateInISOFormat());
-  const [shotTaken, setShotTaken] = useState(false);
+  const [showFormMessage, setShowFormMessage] = useState(false);
   const [formMessage, setFormMessage] = useState("");
 
   // Accounts for timezone offset
@@ -64,15 +64,39 @@ const ShotCounter = ({ session }: { session: Session }) => {
     return false;
   }
 
+  function validateShotCount(){ 
+
+    if(Number(shotCount) > 3 || Number(shotCount) < 0) {
+      setFormMessage("Shots cannot be greater than 3, or less than 0!");
+      setShowFormMessage(true);
+      return false;
+    }
+
+    return true;
+  }
+
+  function validateShotDate() {
+    if(shotCount.length < 1 || shotDate.length < 1) {
+      setFormMessage("Please enter a valid date and shot count!");
+      setShowFormMessage(true);
+      return false;
+    }
+
+    return true;
+  }
+
   // on submit, calculate shots missed, shots made, and create a record in the DB
   // We can specify a date here to setup for missed day back filling in future.
   async function handleSubmit (e: MouseEvent) {
     e.preventDefault();
 
+    if(!validateShotCount() || !validateShotDate()) {
+      return;
+    }
+
     const shotAlreadyTaken = await fetchShotByDate(shotDate);
 
     if(shotAlreadyTaken) {
-      
       setShotDate(getTodaysDateInISOFormat());
       return;
     }
@@ -99,7 +123,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
     setShotDate(getTodaysDateInISOFormat());
     setShotCount("0");
     setFormMessage("Your shots have been recorded, noice!");
-    setShotTaken(true);
+    setShowFormMessage(true);
   }
 
   return (
@@ -108,7 +132,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
             <label htmlFor="shotsMade">Shots Made:</label>
             <input type="number" id="shotsMade" name="shotsMade" value={shotCount} onChange={(e) => handleChange(e)} min="0" max="3"/>
             <input type="date" min="02/01/2023" id="shotDate" name="shotDate" placeholder="mm/dd/yyyy" value={shotDate} onChange={(e) => handleChange(e) } />
-            {shotTaken ? <p>{formMessage}</p> : <></>}
+            {showFormMessage ? <p>{formMessage}</p> : <></>}
             <button type="submit" onClick={(e) => handleSubmit(e)}>Submit</button>
         </form>
     </div>
