@@ -1,7 +1,8 @@
 import { useUser, useSupabaseClient, Session } from '@supabase/auth-helpers-react'
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ShotCounter from '../components/ShotCounter';
+import ShotStatistics from '../components/ShotStatistics';
 import { Database } from '../utils/database.types';
 type Profiles = Database['public']['Tables']['profiles']['Row'];
 
@@ -40,6 +41,8 @@ export default function AccountDashboard({ session }: { session: Session }) {
 
         <h2>
           <ShotCounter session={session}></ShotCounter>
+          <ShotStatistics session={session}></ShotStatistics>
+          <button className="button block" onClick={() => supabase.auth.signOut()}>Sign Out</button>
           <Link href="/">Back to home</Link>
         </h2>
       </>
