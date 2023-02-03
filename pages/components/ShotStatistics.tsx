@@ -17,13 +17,13 @@ export default function ShotStatistics({ session }: { session: Session }) {
 
 
     // Accounts for timezone offset
-    function getSpecificMonthInISOFormat(month: number) {
+    function getSpecificMonthInISOFormat(month: number, day: number) {
         let date = new Date();
-        var firstDay = new Date(date.getFullYear(), month, 1);
-        firstDay.toISOString().split('T')[0];
-        const offset = firstDay.getTimezoneOffset();
-        firstDay = new Date(firstDay.getTime() - (offset*60*1000));
-        return firstDay.toISOString().split('T')[0];
+        var firstOrLastDay = new Date(date.getFullYear(), month, day);
+        firstOrLastDay.toISOString().split('T')[0];
+        const offset = firstOrLastDay.getTimezoneOffset();
+        firstOrLastDay = new Date(firstOrLastDay.getTime() - (offset*60*1000));
+        return firstOrLastDay.toISOString().split('T')[0];
     }
 
     async function fetchShotsMadeByMonth(month: number) {
@@ -34,7 +34,8 @@ export default function ShotStatistics({ session }: { session: Session }) {
             .from('shots_by_date')
             .select(`id, shots_made_today, shots_missed_today`)
             .match({ user: user.id})
-            .gte('date_of_shot', getSpecificMonthInISOFormat(month))
+            .gte('date_of_shot', getSpecificMonthInISOFormat(month, 1))
+            .lte('date_of_shot', getSpecificMonthInISOFormat(month+1, 0))
     
         if (error && status !== 406) {
             throw error
@@ -86,7 +87,7 @@ export default function ShotStatistics({ session }: { session: Session }) {
             <label htmlFor="months">Choose a Month</label>
 
             <select onChange={(e) => fetchShotsMadeByMonth(Number(e.target.value))} name="months" id="months">
-                <option value="" disabled selected>Select a Month</option>
+                <option hidden disabled selected >Select a Month</option>
                 <option value="0">January</option>
                 <option value="1">February</option>
                 <option value="2">March</option>
