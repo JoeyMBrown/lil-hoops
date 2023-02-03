@@ -10,16 +10,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
   const [shotCount, setShotCount] = useState<Shots['shots_made_today']>("0");
   const [shotDate, setShotDate] = useState<Shots['date_of_shot']>(getTodaysDateInISOFormat());
   const [shotTaken, setShotTaken] = useState(false);
-
-  useEffect(() => {
-    // check DB for shot today with corresponding user ID as primary key.  If exists, disable button. populate some sort of error message.
-    // If no shot, persist submit button.
-
-    /*if(!shotTaken) {
-      //fetchTodaysShots();
-    }*/
-
-  }, [])
+  const [formMessage, setFormMessage] = useState("");
 
   // Accounts for timezone offset
   function getTodaysDateInISOFormat() {
@@ -60,7 +51,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
       }
 
       if (data[0]) {
-        setShotTaken(true);
+        setFormMessage("A shot has already been recorded for that date!");
         return true;
       }
 
@@ -81,7 +72,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
     const shotAlreadyTaken = await fetchShotByDate(shotDate);
 
     if(shotAlreadyTaken) {
-      // Update Error message state letting user know they have already logged a shot on that date
+      
       setShotDate(getTodaysDateInISOFormat());
       return;
     }
@@ -107,6 +98,7 @@ const ShotCounter = ({ session }: { session: Session }) => {
 
     setShotDate(getTodaysDateInISOFormat());
     setShotCount("0");
+    setFormMessage("Your shots have been recorded, noice!");
     setShotTaken(true);
   }
 
@@ -116,7 +108,8 @@ const ShotCounter = ({ session }: { session: Session }) => {
             <label htmlFor="shotsMade">Shots Made:</label>
             <input type="number" id="shotsMade" name="shotsMade" value={shotCount} onChange={(e) => handleChange(e)} min="0" max="3"/>
             <input type="date" min="02/01/2023" id="shotDate" name="shotDate" placeholder="mm/dd/yyyy" value={shotDate} onChange={(e) => handleChange(e) } />
-            {shotTaken ? <h3>You have already taken your shots for today!</h3> : <button type="submit" onClick={(e) => handleSubmit(e)}>Submit</button>}
+            {shotTaken ? <p>{formMessage}</p> : <></>}
+            <button type="submit" onClick={(e) => handleSubmit(e)}>Submit</button>
         </form>
     </div>
   )
