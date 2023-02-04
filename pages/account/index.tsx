@@ -37,13 +37,13 @@ export default function AccountDashboard({ session }: { session: Session }) {
 
     return (
         <>
+        <Link href="/account/profile">Edit Account Details</Link>
         <h1>Hey {username}, record your shots!</h1>
 
         <h2>
           <ShotCounter session={session}></ShotCounter>
           <ShotStatistics session={session}></ShotStatistics>
           <button className="button block" onClick={() => supabase.auth.signOut()}>Sign Out</button>
-          <Link href="/">Back to home</Link>
         </h2>
       </>
     )

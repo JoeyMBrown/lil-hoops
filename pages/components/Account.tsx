@@ -12,7 +12,9 @@ export default function Account({ session }: { session: Session }) {
   const [avatar_url, setAvatarUrl] = useState<Profiles['avatar_url']>(null)
 
   useEffect(() => {
-    getProfile()
+    if(user) {
+        getProfile()
+    }
   }, [session])
 
   async function getProfile() {
@@ -31,6 +33,7 @@ export default function Account({ session }: { session: Session }) {
       }
 
       if (data) {
+        console.log(data);
         setUsername(data.username)
         setWebsite(data.website)
         setAvatarUrl(data.avatar_url)
